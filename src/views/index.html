@@ -1,58 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <title>Video Player</title>
+  </head>
 
-  <title>Video Player</title>
-</head>
+  <body>
+    <div id="app">
+      <video :src="videoUrl" controls autoplay></video>
+      <hr />
+      <input v-model="searchTerm" placeholder="Поиск фильма" type="search" />
+      <button @click="findMovie">Найти</button>
+      <ul>
+        <li v-for="file in files" :key="file.magnet">
+          {{ file.title }}
+          <button @click="play(file)">Play</button>
+        </li>
+      </ul>
+    </div>
+  </body>
+  <script>
+    const { createApp } = Vue
 
-<body>
-  <div id="app">
-    <video :src="videoUrl" controls autoplay></video>
-    <ul>
-      <li v-for="file in files" :key="file.magnet">
-        {{ file.fileName }}
-        <button @click="play(file)">Play</button>
-      </li>
-    </ul>
-  </div>
-
-</body>
-<script>
-  const { createApp } = Vue
-
-  createApp({
-    data() {
-      return {
-        activeVideo: {},
-        files: [
-          {
-            magnet: '549faec2087318c3dac1a45caaf570cf7d4e44cd',
-            fileName: 'She.Hulk.Attorney.at.Law.S01E01.WEB-DLRip-AVC.TR.mkv'
-          },
-          {
-            magnet: '',
-            fileName: ''
+    createApp({
+      data() {
+        return {
+          searchTerm: '',
+          activeVideo: {},
+          files: []
+        }
+      },
+      async mounted() {
+        this.getMyMovies()
+      },
+      computed: {
+        videoUrl: ({ activeVideo }) =>
+          activeVideo.fileName ? `/stream/${activeVideo.magnet}/${activeVideo.fileName}` : ''
+      },
+      methods: {
+        async play(file) {
+          const { data } = await axios.get(`/stream/add/${file.magnet}`)
+          console.log(data)
+          this.activeVideo = {
+            magnet: file.magnet,
+            fileName: data[0].name
           }
-        ],
-        message: 'Hello Vue!'
+        },
+        async findMovie() {
+          const response = await axios.get(`/movies/search?searchTerm=${this.searchTerm}`)
+          this.files = response.data
+        },
+        async getMyMovies() {
+          const response = await axios.get(`/movies`)
+          this.files = response.data
+        }
       }
-    },
-    computed: {
-      videoUrl: ({ activeVideo }) => activeVideo.fileName ? `/stream/${activeVideo.magnet}/${activeVideo.fileName}` : ''
-    },
-    methods: {
-      async play(file) {
-        const response = await axios.get(`/stream/add/${file.magnet}`)
-        this.activeVideo = file
-      }
-    }
-  }).mount('#app')
-</script>
-
+    }).mount('#app')
+  </script>
 </html>
