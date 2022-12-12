@@ -9,10 +9,15 @@
 
     <title>Video Player</title>
   </head>
-
+  <style>
+    video {
+      width: 100%;
+    }
+  </style>
   <body>
     <div id="app">
-      <video :src="videoUrl" controls autoplay></video>
+      <!-- <video :src="videoUrl" controls autoplay></video> -->
+      <video :src="videoUrl" controls></video>
       <hr />
       <input v-model="searchTerm" placeholder="Поиск фильма" type="search" />
       <button @click="findMovie">Найти</button>
